@@ -3,37 +3,13 @@ import "./App.css";
 import ToggleColorMode from "./components/ToggleColorMode";
 import axios from "axios";
 
-interface Movies {
-  id: number;
-  title: string;
-  poster_path: string;
-  release_date: string;
-}
+import GenreFetch from "./components/GenreFetch";
+
 function App() {
-  const [movies, setMovies] = useState<Movies[]>([]);
-  const apiKey = "16c7375a4b0c45e7f95053f83c77ad14";
-  const popular = "https://api.themoviedb.org/3/movie/popular";
-
-  // title as a string
-  // poster_path as a string
-  // id as a number
-  // release_date as a string
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = () => {
-    axios.get(`${popular}?api_key=${apiKey}`).then((response) => {
-      const result = response.data.results;
-      setMovies(result);
-      console.log(result);
-    });
-  };
-
   return (
     <div>
-      <ToggleColorMode />
+      <GenreFetch />
+      {/* <ToggleColorMode />
       {movies.map((items) => (
         <div className="movieContainer" key={items.id}>
           <h1>{items.title}</h1>
@@ -46,7 +22,7 @@ function App() {
 
           <p>{items.release_date}</p>
         </div>
-      ))}
+      ))} */}
     </div>
   );
 }
