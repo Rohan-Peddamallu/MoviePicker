@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -20,9 +20,43 @@ interface Movie {
   poster_path: string;
 }
 
+interface Genre {
+  id: number;
+  name: string;
+}
+
 function App() {
-  const [genre, setGenre] = useState("");
+  const [genre, setGenre] = useState<string>("");
+  const [genres, setGenres] = useState<Genre[]>([]);
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [loadingGenres, setLoadingGenres] = useState<boolean>(true);
+  const [errorFetchingGenres, setErrorFetchingGenres] = useState<string | null>(
+    null
+  );
+
+  useEffect(() => {
+    const fetchGenres = async () => {
+      setLoadingGenres(true);
+      setErrorFetchingGenres(null);
+      try {
+        const response = await axios.get(
+          `https://api.themoviedb.org/3/genre/movie/list`,
+          {
+            params: {
+              api_key: TMDB_API_KEY,
+            },
+          }
+        );
+        setGenres(response.data.genres);
+      } catch (error) {
+        setErrorFetchingGenres("Failed to load genres");
+      } finally {
+        setLoadingGenres(false);
+      }
+    };
+
+    fetchGenres();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,11 +82,20 @@ function App() {
         <VStack spacing={4}>
           <FormControl>
             <FormLabel>Select Genre</FormLabel>
-            <Select value={genre} onChange={(e) => setGenre(e.target.value)}>
-              <option value="28">Action</option>
-              <option value="35">Comedy</option>
-              <option value="18">Drama</option>
-            </Select>
+            {loadingGenres ? (
+              <Text>Loading genres...</Text>
+            ) : errorFetchingGenres ? (
+              <Text color="red.500">{errorFetchingGenres}</Text>
+            ) : (
+              <Select value={genre} onChange={(e) => setGenre(e.target.value)}>
+                <option value="">Select Genre</option>
+                {genres.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.name}
+                  </option>
+                ))}
+              </Select>
+            )}
           </FormControl>
           <Button type="submit" colorScheme="blue">
             Fetch Movies

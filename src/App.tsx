@@ -1,8 +1,3 @@
-import { useEffect, useState } from "react";
-import "./App.css";
-import ToggleColorMode from "./components/ToggleColorMode";
-import axios from "axios";
-
 import GenreFetch from "./components/GenreFetch";
 
 function App() {
