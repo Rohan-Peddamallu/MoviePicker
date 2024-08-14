@@ -11,8 +11,9 @@ interface Movies {
 }
 function App() {
   const [movies, setMovies] = useState<Movies[]>([]);
+  const [error, setError] = useState("");
   const apiKey = "16c7375a4b0c45e7f95053f83c77ad14";
-  const popular = "https://api.themoviedb.org/3/movie/popular";
+  const popular = "https://api.themoviedb.orgvie/popular";
 
   // title as a string
   // poster_path as a string
@@ -24,11 +25,15 @@ function App() {
   }, []);
 
   const fetchData = () => {
-    axios.get(`${popular}?api_key=${apiKey}`).then((response) => {
-      const result = response.data.results;
-      setMovies(result);
-      console.log(result);
-    });
+    axios
+      .get(`${popular}?api_key=${apiKey}`)
+      .then((response) => {
+        const result = response.data.results;
+        setMovies(result);
+        console.log(result);
+      })
+      .catch((err) => setError(err.message));
+    console.log(error);
   };
 
   return (
