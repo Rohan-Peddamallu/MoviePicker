@@ -21,6 +21,8 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useState } from "react";
 import { CheckIcon } from "@chakra-ui/icons";
 import ToggleColorMode from "../components/ToggleColorMode";
+import * as UserApi from "../network/user_api";
+import { UnauthorizedError } from "../network/http-errors";
 
 const passwordRegex =
   /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
@@ -53,10 +55,22 @@ const Login = () => {
     mode: "onChange",
   });
 
-  const onSubmit = (data: FormData) => {
-    console.log(data);
-    setIsSubmitted(true);
-    navigate("/home");
+  const onSubmit = async (data: FormData) => {
+    try {
+      console.log(data);
+      const Response = await UserApi.Login(data);
+      console.log(Response);
+      setIsSubmitted(true);
+    } catch (error) {
+      if (error instanceof UnauthorizedError) {
+        console.log("Invalid credentials");
+        alert("Invalid credentials");
+      } else {
+        console.error(error);
+        alert(error);
+      }
+      console.log(error);
+    }
   };
 
   const bgColor = useColorModeValue("gray.100", "gray.700");
