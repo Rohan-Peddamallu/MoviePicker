@@ -12,6 +12,10 @@ import {
   InputGroup,
   InputRightElement,
   Flex,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
 } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -45,6 +49,7 @@ const Login = () => {
   const { mutateUser } = useAuthenticatedUser();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState(false);
   const navigate = useNavigate();
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
@@ -68,11 +73,12 @@ const Login = () => {
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         console.log("Invalid credentials");
-        alert("Invalid credentials");
+        setError(true);
         setIsSubmitted(false);
       } else {
         console.error(error);
         alert(error);
+        setError(true);
       }
       console.log(error);
     }
@@ -96,6 +102,13 @@ const Login = () => {
           >
             Login
           </Heading>
+          {error && (
+            <Alert status="error" mb={4}>
+              <AlertIcon />
+              <AlertTitle mr={2}>Error!</AlertTitle>
+              <AlertDescription>Invalid credentials</AlertDescription>
+            </Alert>
+          )}
           <form onSubmit={handleSubmit(onSubmit)}>
             <VStack spacing={4}>
               <FormControl isInvalid={!!errors.email}>
