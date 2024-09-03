@@ -2,20 +2,23 @@ import { RequestHandler } from "express";
 import UserModel from "../models/users";
 import bcrypt from "bcrypt";
 import { SignUpBody } from "../validation/users";
-import { LoginBody } from "../validation/users"; 
+import { LoginBody } from "../validation/users";
 import createHttpError from "http-errors";
 
-export const signup: RequestHandler<unknown,unknown, SignUpBody, unknown> = async (req, res, next) => {
-  const name = req.body.body.name;
-  const email = req.body.body.email;
-  const password = req.body.body.password;
-  try{
+export const signup: RequestHandler<
+  unknown,
+  unknown,
+  SignUpBody,
+  unknown
+> = async (req, res, next) => {
+  const { name, email, password } = req.body;
+  try {
     if (!name || !email || !password) {
       return res.status(400).json({ message: "Please enter all fields" });
     }
 
-    const exsistingUser = await UserModel.findOne({ email: email }).exec();
-    if (exsistingUser) {
+    const existingUser = await UserModel.findOne({ email: email }).exec();
+    if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
@@ -28,49 +31,53 @@ export const signup: RequestHandler<unknown,unknown, SignUpBody, unknown> = asyn
 
     req.session.userId = user._id;
     res.status(201).json(user);
-  }
-  catch (error) {
+  } catch (error) {
     next(error);
   }
-}
+};
 
-export const login: RequestHandler<unknown,unknown,LoginBody,unknown> = async (req, res, next) => {
-  const email = req.body.body.email;
-  const password = req.body.body.password;
-  try{
+export const login: RequestHandler<
+  unknown,
+  unknown,
+  LoginBody,
+  unknown
+> = async (req, res, next) => {
+  const { email, password } = req.body;
+  try {
     if (!email || !password) {
       throw createHttpError(401, "Please enter all fields");
     }
 
-    const exsistingUser = await UserModel.findOne({ email: email }).exec();
-    if (!exsistingUser) {
-      throw createHttpError(401, "No user exsists");
+    const existingUser = await UserModel.findOne({ email: email }).exec();
+    if (!existingUser) {
+      throw createHttpError(401, "No user exists");
     }
-    const isPasswordCorrect = await bcrypt.compare(password, exsistingUser.password);
+    const isPasswordCorrect = await bcrypt.compare(
+      password,
+      existingUser.password
+    );
     if (!isPasswordCorrect) {
       throw createHttpError(401, "Invalid credentials");
     }
-    res.status(201).json(exsistingUser);
-    req.session.userId = exsistingUser._id;
-  }
-  catch (error) {
+    req.session.userId = existingUser._id;
+    res.status(200).json(existingUser);
+  } catch (error) {
     next(error);
   }
-}
+};
 
 export const getAuthenticatedUser: RequestHandler = async (req, res, next) => {
-  const authenticatedUserId = req.session.userId;
-  try{
-    if(!authenticatedUserId){
-      throw createHttpError(401, "Not authenticated");
+  try {
+    const authenticatedUserId = req.session.userId;
+    if (!authenticatedUserId) {
+      return res.status(401).json({ message: "Not authenticated" });
     }
     const user = await UserModel.findById(authenticatedUserId).exec();
-    if(!user){
-      throw createHttpError(404, "User not found");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
     res.status(200).json(user);
+  } catch (error) {
+    next(error);
   }
-  catch(error){
-  next(error);
-  }
-}
+};
