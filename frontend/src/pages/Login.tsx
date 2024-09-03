@@ -12,6 +12,10 @@ import {
   InputGroup,
   InputRightElement,
   Flex,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
 } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -21,6 +25,9 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useState } from "react";
 import { CheckIcon } from "@chakra-ui/icons";
 import ToggleColorMode from "../components/ToggleColorMode";
+import * as UserApi from "../network/user_api";
+import { UnauthorizedError } from "../network/http-errors";
+import useAuthenticatedUser from "../hooks/useAuthenticatedUser";
 
 const passwordRegex =
   /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
@@ -39,8 +46,10 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const Login = () => {
+  const { mutateUser } = useAuthenticatedUser();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState(false);
   const navigate = useNavigate();
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
@@ -53,10 +62,26 @@ const Login = () => {
     mode: "onChange",
   });
 
-  const onSubmit = (data: FormData) => {
-    console.log(data);
-    setIsSubmitted(true);
-    navigate("/home");
+  const onSubmit = async (data: FormData) => {
+    try {
+      console.log(data);
+      const Response = await UserApi.Login(data);
+      console.log(Response);
+      mutateUser();
+      setIsSubmitted(true);
+      navigate("/home");
+    } catch (error) {
+      if (error instanceof UnauthorizedError) {
+        console.log("Invalid credentials");
+        setError(true);
+        setIsSubmitted(false);
+      } else {
+        console.error(error);
+        alert(error);
+        setError(true);
+      }
+      console.log(error);
+    }
   };
 
   const bgColor = useColorModeValue("gray.100", "gray.700");
@@ -77,6 +102,13 @@ const Login = () => {
           >
             Login
           </Heading>
+          {error && (
+            <Alert status="error" mb={4}>
+              <AlertIcon />
+              <AlertTitle mr={2}>Error!</AlertTitle>
+              <AlertDescription>Invalid credentials</AlertDescription>
+            </Alert>
+          )}
           <form onSubmit={handleSubmit(onSubmit)}>
             <VStack spacing={4}>
               <FormControl isInvalid={!!errors.email}>
