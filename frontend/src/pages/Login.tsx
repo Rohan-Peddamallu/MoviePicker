@@ -69,7 +69,6 @@ const Login = () => {
       if (error instanceof UnauthorizedError) {
         console.log("Invalid credentials");
         alert("Invalid credentials");
-        setIsSubmitted(false);
       } else {
         console.error(error);
         alert(error);
