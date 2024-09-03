@@ -31,3 +31,14 @@ export async function Login(credentials: LoginCredentials): Promise<User> {
   });
   return response.json();
 }
+
+export async function getAuthenticatedUser() {
+  const response = await fetch("http://localhost:8080/api/users/authenticated-user", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  return response.json();
+  
+}

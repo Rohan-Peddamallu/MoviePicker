@@ -23,6 +23,7 @@ import { CheckIcon } from "@chakra-ui/icons";
 import ToggleColorMode from "../components/ToggleColorMode";
 import * as UserApi from "../network/user_api";
 import { UnauthorizedError } from "../network/http-errors";
+import useAuthenticatedUser from "../hooks/useAuthenticatedUser";
 
 const passwordRegex =
   /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
@@ -41,6 +42,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const Login = () => {
+  const { mutateUser } = useAuthenticatedUser();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const navigate = useNavigate();
@@ -60,7 +62,9 @@ const Login = () => {
       console.log(data);
       const Response = await UserApi.Login(data);
       console.log(Response);
+      mutateUser();
       setIsSubmitted(true);
+      navigate("/home");
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         console.log("Invalid credentials");
